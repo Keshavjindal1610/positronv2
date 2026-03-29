@@ -1,0 +1,2296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Positron Career Institute — Start Your Ignition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Instrument+Serif:ital@0;1&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<style>
+/* ======= DESIGN TOKENS ======= */
+:root {
+  --bg: #F8FAFE;
+  --white: #FFFFFF;
+  --deep: #060E1F;
+  --navy: #0A2540;
+  --electric: #0066FF;
+  --electric-light: #3385FF;
+  --yellow: #FFC300;
+  --yellow-dim: rgba(255,195,0,0.12);
+  --green: #00D084;
+  --red: #FF4757;
+  --glass: rgba(255,255,255,0.72);
+  --glass-border: rgba(255,255,255,0.9);
+  --panel-bg: rgba(6,14,31,0.97);
+  --muted: rgba(6,14,31,0.42);
+  --subtle: rgba(6,14,31,0.06);
+  --font-d: 'Bebas Neue', sans-serif;
+  --font-s: 'Instrument Serif', serif;
+  --font-b: 'Syne', sans-serif;
+  --step-dur: 0.6s;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --r-card: 20px;
+  --r-btn: 100px;
+  --shadow-sm: 0 4px 16px rgba(6,14,31,0.06);
+  --shadow-md: 0 12px 40px rgba(6,14,31,0.10);
+  --shadow-lg: 0 24px 80px rgba(6,14,31,0.14);
+  --shadow-glow: 0 0 40px rgba(0,102,255,0.22);
+}
+
+/* ======= RESET ======= */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+body {
+  font-family: var(--font-b);
+  background: var(--bg);
+  color: var(--deep);
+  cursor: none;
+  -webkit-font-smoothing: antialiased;
+}
+button { font-family: var(--font-b); cursor: none; border: none; background: none; }
+input, select, textarea { font-family: var(--font-b); }
+
+/* ======= CURSOR ======= */
+#csr {
+  position: fixed; width: 10px; height: 10px;
+  background: var(--electric); border-radius: 50%;
+  pointer-events: none; z-index: 99999;
+  transform: translate(-50%,-50%);
+  transition: width .2s var(--ease-out), height .2s var(--ease-out), background .2s;
+  mix-blend-mode: multiply;
+}
+#csr-ring {
+  position: fixed; width: 32px; height: 32px;
+  border: 1.5px solid rgba(0,102,255,0.35);
+  border-radius: 50%; pointer-events: none; z-index: 99998;
+  transform: translate(-50%,-50%);
+  transition: left .12s var(--ease-out), top .12s var(--ease-out), width .2s, height .2s;
+}
+body.hovering #csr { width: 18px; height: 18px; background: var(--yellow); }
+body.hovering #csr-ring { width: 44px; height: 44px; border-color: rgba(255,195,0,0.4); }
+
+/* ======= TOP PROGRESS BAR ======= */
+#journey-bar-wrap {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 5000;
+  background: var(--white);
+  border-bottom: 1px solid rgba(6,14,31,0.06);
+  padding: 0 24px;
+  height: 52px;
+  display: flex; align-items: center; gap: 20px;
+}
+.jb-logo {
+  font-family: var(--font-d);
+  font-size: 1.1rem; letter-spacing: 2px;
+  color: var(--navy); white-space: nowrap;
+  display: flex; align-items: center; gap: 6px;
+}
+.jb-logo-dot {
+  width: 6px; height: 6px;
+  background: var(--yellow); border-radius: 50%;
+  animation: blip 2s infinite;
+}
+@keyframes blip { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.8);opacity:.5} }
+
+.jb-track-wrap { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.jb-label-row { display: flex; justify-content: space-between; align-items: center; }
+.jb-label {
+  font-size: 0.62rem; font-weight: 600; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--electric);
+}
+.jb-pct {
+  font-family: var(--font-d); font-size: 0.95rem;
+  letter-spacing: 1px; color: var(--navy);
+}
+.jb-track {
+  height: 4px; background: rgba(6,14,31,0.07);
+  border-radius: 100px; overflow: hidden;
+}
+.jb-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--electric), var(--yellow));
+  border-radius: 100px;
+  width: 0%;
+  transition: width .8s var(--ease-out);
+  position: relative;
+}
+.jb-fill::after {
+  content: '';
+  position: absolute; right: -1px; top: -3px;
+  width: 10px; height: 10px;
+  background: var(--yellow);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--yellow);
+}
+.jb-steps { display: flex; gap: 4px; align-items: center; }
+.jb-step-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(6,14,31,0.12);
+  transition: all .3s;
+}
+.jb-step-dot.done { background: var(--electric); }
+.jb-step-dot.active { background: var(--yellow); width: 12px; border-radius: 3px; }
+
+/* ======= MAIN STAGE ======= */
+#stage {
+  position: fixed; inset: 0;
+  top: 52px;
+  overflow: hidden;
+}
+
+/* ======= STEPS ======= */
+.step {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transform: translateY(30px);
+  transition: opacity var(--step-dur) var(--ease-out),
+              transform var(--step-dur) var(--ease-out);
+  padding: 20px 20px 90px 20px;
+}
+.step.active {
+  opacity: 1; pointer-events: all; transform: translateY(0);
+}
+.step.exit-up {
+  opacity: 0; transform: translateY(-30px);
+  pointer-events: none;
+}
+.step.exit-down {
+  opacity: 0; transform: translateY(30px);
+  pointer-events: none;
+}
+
+/* ======= NAV FOOTER ======= */
+#step-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 4000;
+  padding: 14px 24px 20px;
+  background: linear-gradient(transparent, var(--bg) 40%);
+  display: flex; align-items: center; justify-content: space-between;
+}
+#step-nav.hidden { opacity: 0; pointer-events: none; }
+.nav-back {
+  font-size: 0.82rem; font-weight: 600;
+  color: var(--muted); letter-spacing: 0.5px;
+  padding: 10px 20px; border-radius: var(--r-btn);
+  transition: color .2s, background .2s;
+}
+.nav-back:hover { color: var(--deep); background: var(--subtle); }
+.nav-next {
+  background: var(--navy); color: #fff;
+  padding: 14px 36px; border-radius: var(--r-btn);
+  font-size: 0.88rem; font-weight: 700; letter-spacing: 1px;
+  transition: all .3s var(--ease-spring);
+  box-shadow: var(--shadow-md);
+  display: flex; align-items: center; gap: 8px;
+  text-transform: uppercase;
+}
+.nav-next:hover {
+  background: var(--electric);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+.nav-next:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+.nav-next .arrow { transition: transform .2s; }
+.nav-next:hover .arrow { transform: translateX(4px); }
+
+/* ======= STEP CONTENT ATOMS ======= */
+.eyebrow {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 4px;
+  text-transform: uppercase; color: var(--electric);
+  margin-bottom: 16px;
+  opacity: 0; animation: fadeup .5s .1s forwards;
+}
+.step-title {
+  font-family: var(--font-d);
+  font-size: clamp(2.8rem, 7vw, 5.5rem);
+  line-height: 0.92; letter-spacing: 1.5px;
+  color: var(--navy); margin-bottom: 14px;
+  opacity: 0; animation: fadeup .5s .2s forwards;
+}
+.step-sub {
+  font-family: var(--font-s); font-style: italic;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  color: var(--muted); line-height: 1.6;
+  margin-bottom: 40px;
+  opacity: 0; animation: fadeup .5s .3s forwards;
+}
+.center { text-align: center; }
+@keyframes fadeup {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ======= CHOICE CARDS ======= */
+.choice-stack { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 560px; }
+.c-card {
+  background: var(--white);
+  border: 1.5px solid rgba(6,14,31,0.08);
+  border-radius: var(--r-card);
+  padding: 22px 28px;
+  display: flex; align-items: center; gap: 18px;
+  cursor: none; transition: all .3s var(--ease-spring);
+  position: relative; overflow: hidden;
+  opacity: 0; animation: fadeup .5s forwards;
+  box-shadow: var(--shadow-sm);
+}
+.c-card:nth-child(1) { animation-delay: .25s; }
+.c-card:nth-child(2) { animation-delay: .35s; }
+.c-card:nth-child(3) { animation-delay: .45s; }
+.c-card-glow {
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at var(--gx,50%) var(--gy,50%), rgba(0,102,255,.07), transparent 55%);
+  pointer-events: none; transition: opacity .3s;
+  opacity: 0;
+}
+.c-card:hover .c-card-glow { opacity: 1; }
+.c-card:hover {
+  border-color: var(--electric);
+  box-shadow: 0 8px 32px rgba(0,102,255,.14);
+  transform: translateY(-3px);
+}
+.c-card.selected {
+  border-color: var(--yellow);
+  background: rgba(255,195,0,.06);
+  box-shadow: 0 8px 32px rgba(255,195,0,.2);
+  transform: translateY(-2px);
+}
+.c-icon {
+  width: 46px; height: 46px; flex-shrink: 0;
+  background: var(--subtle); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  transition: all .3s;
+}
+.c-card:hover .c-icon { background: rgba(0,102,255,.08); }
+.c-card.selected .c-icon { background: rgba(255,195,0,.15); }
+.c-text { flex: 1; }
+.c-label {
+  font-size: 1rem; font-weight: 700; color: var(--navy);
+  margin-bottom: 3px;
+}
+.c-sublabel { font-size: 0.8rem; color: var(--muted); }
+.c-check {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid rgba(6,14,31,.15);
+  transition: all .3s var(--ease-spring);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.c-card.selected .c-check {
+  background: var(--yellow); border-color: var(--yellow);
+  transform: scale(1.1);
+}
+.c-check-inner {
+  width: 8px; height: 8px; background: var(--navy);
+  border-radius: 50%; transform: scale(0);
+  transition: transform .2s var(--ease-spring);
+}
+.c-card.selected .c-check-inner { transform: scale(1); }
+
+/* ======= 3-COL ASPIRATION GRID ======= */
+.asp-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; max-width: 640px; width: 100%; }
+@media(max-width:600px) { .asp-grid { grid-template-columns: 1fr; } }
+.asp-card {
+  background: rgba(6,14,31,.03);
+  border: 1.5px solid rgba(6,14,31,.07);
+  border-radius: var(--r-card); padding: 32px 20px;
+  text-align: center; cursor: none;
+  transition: all .35s var(--ease-spring);
+  opacity: 0; animation: fadeup .5s forwards;
+}
+.asp-card:nth-child(1) { animation-delay: .25s; }
+.asp-card:nth-child(2) { animation-delay: .35s; }
+.asp-card:nth-child(3) { animation-delay: .45s; }
+.asp-card:hover {
+  border-color: var(--electric);
+  background: rgba(0,102,255,.04);
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+}
+.asp-card.selected {
+  border-color: var(--yellow);
+  background: var(--yellow-dim);
+  box-shadow: 0 12px 40px rgba(255,195,0,.18);
+  transform: translateY(-5px);
+}
+.asp-emoji { font-size: 2.4rem; margin-bottom: 14px; display: block; }
+.asp-label { font-size: .95rem; font-weight: 700; color: var(--navy); line-height: 1.4; }
+
+/* ======= INPUT FIELDS ======= */
+.input-field {
+  width: 100%; max-width: 480px;
+  background: var(--white);
+  border: 1.5px solid rgba(6,14,31,.1);
+  border-radius: 14px;
+  padding: 18px 22px;
+  font-family: var(--font-b); font-size: 1rem; color: var(--navy);
+  outline: none;
+  transition: border-color .25s, box-shadow .25s;
+  box-shadow: var(--shadow-sm);
+  opacity: 0; animation: fadeup .5s .3s forwards;
+}
+.input-field:focus {
+  border-color: var(--electric);
+  box-shadow: 0 0 0 4px rgba(0,102,255,.08), var(--shadow-sm);
+}
+.input-field::placeholder { color: rgba(6,14,31,.3); }
+.input-row { display: flex; flex-direction: column; gap: 14px; align-items: center; width: 100%; }
+.input-hint {
+  font-size: .78rem; color: var(--muted);
+  opacity: 0; animation: fadeup .5s .45s forwards;
+  display: flex; align-items: center; gap: 6px;
+}
+.input-hint::before { content: '🔒'; font-size: .9rem; }
+
+/* ======= PRODUCT CARDS ======= */
+.prod-grid {
+  display: grid; grid-template-columns: repeat(2,1fr);
+  gap: 16px; max-width: 700px; width: 100%;
+}
+@media(max-width:580px) { .prod-grid { grid-template-columns: 1fr; } }
+.prod-card {
+  background: var(--white);
+  border: 1.5px solid rgba(6,14,31,.07);
+  border-radius: var(--r-card); padding: 28px 24px;
+  cursor: none; transition: all .35s var(--ease-spring);
+  box-shadow: var(--shadow-sm); position: relative;
+  overflow: hidden;
+  opacity: 0; animation: fadeup .5s forwards;
+}
+.prod-card:nth-child(1){animation-delay:.2s}
+.prod-card:nth-child(2){animation-delay:.3s}
+.prod-card:nth-child(3){animation-delay:.4s}
+.prod-card:nth-child(4){animation-delay:.5s}
+.prod-card::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 2px; background: linear-gradient(90deg, var(--electric), var(--yellow));
+  transform: scaleX(0); transform-origin: left;
+  transition: transform .4s var(--ease-out);
+}
+.prod-card:hover::after { transform: scaleX(1); }
+.prod-card:hover {
+  transform: translateY(-6px) rotateX(1deg);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(0,102,255,.15);
+}
+.prod-icon {
+  width: 48px; height: 48px;
+  background: linear-gradient(135deg, rgba(0,102,255,.08), rgba(0,102,255,.04));
+  border-radius: 13px; display: flex; align-items: center;
+  justify-content: center; font-size: 1.4rem; margin-bottom: 16px;
+}
+.prod-title {
+  font-family: var(--font-d); font-size: 1.3rem; letter-spacing: 1px;
+  color: var(--navy); margin-bottom: 8px;
+}
+.prod-desc { font-size: .82rem; color: var(--muted); line-height: 1.6; margin-bottom: 14px; }
+.prod-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: .67rem; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--electric);
+}
+.prod-badge::before { content:''; width:14px; height:1.5px; background:var(--electric); }
+
+/* ======= DNA TOOL ======= */
+.dna-wrap { max-width: 560px; width: 100%; }
+.dna-progress { margin-bottom: 28px; }
+.dna-prog-labels { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.dna-prog-label { font-size: .72rem; font-weight: 700; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+.dna-prog-val { font-size: .72rem; font-weight: 700; color: var(--electric); }
+.dna-prog-track {
+  height: 3px; background: var(--subtle); border-radius: 100px; overflow: hidden;
+}
+.dna-prog-fill {
+  height: 100%; background: linear-gradient(90deg, var(--electric), var(--yellow));
+  border-radius: 100px; transition: width .5s var(--ease-out);
+}
+.dna-q { font-weight: 700; font-size: 1rem; color: var(--navy); margin-bottom: 20px; line-height: 1.5; }
+.dna-opts { display: flex; flex-direction: column; gap: 10px; }
+.dna-opt {
+  background: var(--white); border: 1.5px solid rgba(6,14,31,.08);
+  border-radius: 13px; padding: 15px 20px;
+  display: flex; align-items: center; gap: 14px;
+  cursor: none; transition: all .25s var(--ease-spring);
+  box-shadow: var(--shadow-sm);
+}
+.dna-opt:hover { border-color: var(--electric); transform: translateX(4px); }
+.dna-opt.sel { border-color: var(--yellow); background: var(--yellow-dim); }
+.dna-dot {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid rgba(6,14,31,.2); flex-shrink: 0;
+  transition: all .2s; display: flex; align-items: center; justify-content: center;
+}
+.dna-opt.sel .dna-dot { background: var(--yellow); border-color: var(--yellow); }
+.dna-dot-inner { width: 6px; height: 6px; background: var(--navy); border-radius: 50%; transform: scale(0); transition: transform .2s var(--ease-spring); }
+.dna-opt.sel .dna-dot-inner { transform: scale(1); }
+.dna-opt-text { font-size: .9rem; font-weight: 600; color: var(--navy); }
+
+/* ======= SPARK METER ======= */
+.spark-wrap { max-width: 540px; width: 100%; }
+.spark-central {
+  background: var(--white); border-radius: 24px; padding: 28px;
+  box-shadow: var(--shadow-md); margin-bottom: 20px;
+  border: 1px solid rgba(6,14,31,.06);
+  opacity: 0; animation: fadeup .5s .2s forwards;
+}
+.spark-gauge-wrap { display: flex; align-items: center; gap: 24px; margin-bottom: 24px; }
+.spark-gauge {
+  position: relative; flex-shrink: 0;
+}
+.spark-gauge svg { transform: rotate(-90deg); }
+.spark-gauge-val {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.spark-gauge-num {
+  font-family: var(--font-d); font-size: 2rem; letter-spacing: 1px;
+  color: var(--navy); line-height: 1;
+}
+.spark-gauge-unit { font-size: .65rem; font-weight: 700; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+.spark-meta h3 { font-family: var(--font-d); font-size: 1.5rem; letter-spacing: 1px; color: var(--navy); margin-bottom: 4px; }
+.spark-meta p { font-size: .82rem; color: var(--muted); line-height: 1.5; }
+.spark-sliders { display: flex; flex-direction: column; gap: 18px; }
+.spark-row label {
+  display: flex; justify-content: space-between;
+  font-size: .8rem; font-weight: 600; color: var(--navy);
+  margin-bottom: 8px;
+}
+.spark-row label span { color: var(--electric); }
+input[type=range] {
+  -webkit-appearance: none; width: 100%; height: 5px;
+  background: rgba(6,14,31,.08); border-radius: 100px; outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 20px; height: 20px;
+  background: var(--navy); border-radius: 50%; cursor: none;
+  box-shadow: 0 2px 8px rgba(6,14,31,.2);
+  transition: transform .2s, box-shadow .2s;
+}
+input[type=range]::-webkit-slider-thumb:hover {
+  transform: scale(1.2); box-shadow: 0 0 0 6px rgba(0,102,255,.12);
+}
+.mini-meters {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 12px;
+  opacity: 0; animation: fadeup .5s .35s forwards;
+}
+.mini-meter {
+  background: var(--white); border-radius: 14px; padding: 16px 14px;
+  box-shadow: var(--shadow-sm); border: 1px solid rgba(6,14,31,.05); text-align: center;
+}
+.mm-val { font-family: var(--font-d); font-size: 1.6rem; letter-spacing: 1px; color: var(--navy); }
+.mm-bar { height: 3px; background: var(--subtle); border-radius: 100px; margin: 6px 0 4px; overflow: hidden; }
+.mm-fill { height: 100%; border-radius: 100px; transition: width .6s var(--ease-out); }
+.mm-label { font-size: .64rem; font-weight: 700; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+
+/* ======= RESULT STEP ======= */
+.result-wrap { max-width: 620px; width: 100%; }
+.result-hero {
+  background: linear-gradient(135deg, var(--navy), #0d3060);
+  border-radius: 28px; padding: 44px 40px;
+  position: relative; overflow: hidden; margin-bottom: 16px;
+  opacity: 0; animation: fadeup .6s .1s forwards;
+}
+.result-hero::before {
+  content: '';
+  position: absolute; top: -60px; right: -60px;
+  width: 240px; height: 240px;
+  background: radial-gradient(circle, rgba(255,195,0,.18), transparent 60%);
+  border-radius: 50%;
+}
+.result-hero::after {
+  content: '';
+  position: absolute; bottom: -40px; left: -40px;
+  width: 180px; height: 180px;
+  background: radial-gradient(circle, rgba(0,102,255,.2), transparent 60%);
+  border-radius: 50%;
+}
+.result-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
+  color: rgba(255,255,255,.8);
+  font-size: .65rem; font-weight: 700; letter-spacing: 3px;
+  text-transform: uppercase; padding: 6px 14px; border-radius: 100px;
+  margin-bottom: 20px; position: relative; z-index: 1;
+}
+.result-title {
+  font-family: var(--font-d); font-size: clamp(2.2rem, 6vw, 3.8rem);
+  color: #fff; letter-spacing: 1.5px; line-height: .95;
+  margin-bottom: 14px; position: relative; z-index: 1;
+}
+.result-title .accent { color: var(--yellow); }
+.result-desc {
+  font-family: var(--font-s); font-style: italic;
+  font-size: 1rem; color: rgba(255,255,255,.6);
+  line-height: 1.7; margin-bottom: 28px; position: relative; z-index: 1;
+}
+.result-stats {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 12px;
+  position: relative; z-index: 1;
+}
+.rs-box {
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 14px; padding: 16px 12px; text-align: center;
+}
+.rs-val { font-family: var(--font-d); font-size: 1.8rem; letter-spacing: 1px; color: var(--yellow); }
+.rs-label { font-size: .68rem; color: rgba(255,255,255,.45); margin-top: 3px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+.result-ctas {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  opacity: 0; animation: fadeup .6s .25s forwards;
+}
+.btn-ignite {
+  background: var(--yellow); color: var(--navy);
+  padding: 16px 32px; border-radius: var(--r-btn);
+  font-size: .9rem; font-weight: 800; letter-spacing: 1px;
+  text-transform: uppercase; flex: 1; min-width: 160px;
+  transition: all .35s var(--ease-spring);
+  box-shadow: 0 8px 24px rgba(255,195,0,.35);
+}
+.btn-ignite:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 14px 36px rgba(255,195,0,.45); }
+.btn-wa {
+  background: #25D366; color: #fff;
+  padding: 16px 26px; border-radius: var(--r-btn);
+  font-size: .88rem; font-weight: 700;
+  display: flex; align-items: center; gap: 8px;
+  transition: all .35s var(--ease-spring);
+  box-shadow: 0 8px 24px rgba(37,211,102,.3);
+}
+.btn-wa:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 14px 36px rgba(37,211,102,.4); }
+.btn-wa svg { width: 18px; fill: currentColor; }
+
+/* ======= TRUST MINI ======= */
+.trust-mini {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  opacity: 0; animation: fadeup .6s .4s forwards; margin-top: 12px;
+}
+.trust-pill {
+  background: var(--white); border: 1px solid rgba(6,14,31,.07);
+  border-radius: 100px; padding: 8px 16px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: .8rem; font-weight: 600; color: var(--navy);
+  box-shadow: var(--shadow-sm);
+}
+.trust-pill-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; }
+.trust-pill-rank { color: var(--electric); font-weight: 700; }
+
+/* ======= URGENCY BAR ======= */
+.urgency-strip {
+  background: linear-gradient(90deg, rgba(255,71,87,.12), rgba(255,195,0,.08));
+  border: 1px solid rgba(255,71,87,.15); border-radius: 12px;
+  padding: 12px 20px; display: flex; align-items: center; gap: 12px;
+  margin-top: 14px; opacity: 0; animation: fadeup .6s .5s forwards;
+}
+.urgency-dot { width: 8px; height: 8px; background: var(--red); border-radius: 50%; animation: blip 1.5s infinite; flex-shrink: 0; }
+.urgency-text { font-size: .82rem; font-weight: 700; color: var(--navy); }
+.urgency-cd { margin-left: auto; font-family: var(--font-d); font-size: 1.1rem; letter-spacing: 2px; color: var(--red); }
+
+/* ======= STEP 0 HERO ======= */
+#step-0 { background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0,102,255,.07), transparent 70%); }
+#hero-canvas { position: absolute; inset: 0; pointer-events: none; }
+.hero-content { position: relative; z-index: 2; text-align: center; max-width: 700px; }
+.hero-headline {
+  font-family: var(--font-d);
+  font-size: clamp(4rem, 11vw, 8.5rem);
+  line-height: .88; letter-spacing: 2px;
+  color: var(--navy);
+  opacity: 0; animation: fadeup .8s .4s forwards;
+  margin-bottom: 14px;
+}
+.hero-headline .el { color: var(--electric); }
+.hero-sub {
+  font-family: var(--font-s); font-style: italic;
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  color: var(--muted); margin-bottom: 40px;
+  opacity: 0; animation: fadeup .8s .65s forwards;
+}
+.hero-exams {
+  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+  opacity: 0; animation: fadeup .8s .85s forwards; margin-bottom: 44px;
+}
+.exam-pill {
+  background: var(--white); border: 1.5px solid rgba(6,14,31,.1);
+  border-radius: 100px; padding: 8px 18px;
+  font-size: .78rem; font-weight: 700; letter-spacing: 1.5px;
+  color: var(--navy); text-transform: uppercase;
+  box-shadow: var(--shadow-sm);
+  transition: all .3s var(--ease-spring);
+}
+.exam-pill:hover { border-color: var(--electric); color: var(--electric); transform: translateY(-2px); }
+.hero-cta {
+  background: var(--navy); color: #fff;
+  padding: 18px 48px; border-radius: var(--r-btn);
+  font-size: 1rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+  opacity: 0; animation: fadeup .8s 1.05s forwards;
+  transition: all .35s var(--ease-spring);
+  box-shadow: var(--shadow-lg);
+  display: inline-flex; align-items: center; gap: 10px;
+}
+.hero-cta:hover { background: var(--electric); transform: translateY(-3px); box-shadow: var(--shadow-glow); }
+.hero-cta .spark-icon { animation: jiggle 2s infinite; }
+@keyframes jiggle { 0%,100%{transform:scale(1)} 50%{transform:scale(1.3) rotate(10deg)} }
+
+/* ======= STEP 4 - ATOM ======= */
+#step-4 { background: var(--navy); overflow: hidden; }
+#three-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.atom-overlay {
+  position: relative; z-index: 2; text-align: center; pointer-events: none; padding: 0 24px;
+}
+.atom-headline { color: #fff; }
+.atom-eyebrow { color: rgba(255,195,0,.8); }
+.atom-sub { color: rgba(255,255,255,.45); }
+.atom-nodes-legend {
+  display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-top: 32px;
+  opacity: 0; animation: fadeup .6s .6s forwards; pointer-events: all;
+}
+.node-pill {
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+  border-radius: 100px; padding: 8px 18px;
+  font-size: .75rem; font-weight: 700; letter-spacing: 1.5px;
+  color: rgba(255,255,255,.7); text-transform: uppercase;
+  display: flex; align-items: center; gap: 7px;
+}
+.node-pill-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* ======= SIDE PANEL ======= */
+#side-panel {
+  position: fixed; right: 0; top: 52px; bottom: 0;
+  width: 280px; z-index: 3000;
+  background: var(--panel-bg);
+  backdrop-filter: blur(20px);
+  border-left: 1px solid rgba(255,255,255,.07);
+  padding: 24px 20px;
+  transform: translateX(100%);
+  transition: transform .6s var(--ease-out);
+  display: flex; flex-direction: column; gap: 0;
+  overflow-y: auto;
+}
+#side-panel.open { transform: translateX(0); }
+@media(max-width:900px) {
+  #side-panel { width: 240px; }
+  #side-panel.open { transform: translateX(0); }
+}
+@media(max-width:700px) {
+  #side-panel { display: none; }
+}
+.sp-header {
+  font-size: .6rem; font-weight: 700; letter-spacing: 3px;
+  color: rgba(255,255,255,.3); text-transform: uppercase;
+  padding-bottom: 16px; margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+.sp-section { margin-bottom: 24px; }
+.sp-label {
+  font-size: .6rem; font-weight: 700; letter-spacing: 2.5px;
+  color: rgba(255,255,255,.3); text-transform: uppercase; margin-bottom: 10px;
+}
+.sp-type {
+  font-family: var(--font-d); font-size: 1.5rem; letter-spacing: 1.5px;
+  color: var(--yellow); line-height: 1.1; min-height: 1.8rem;
+  transition: all .4s;
+}
+.sp-name-val {
+  font-size: .88rem; font-weight: 600; color: rgba(255,255,255,.6);
+  min-height: 1.2rem; transition: all .3s;
+}
+
+/* Live Meters */
+.sp-meters { display: flex; flex-direction: column; gap: 14px; }
+.sp-meter { }
+.sp-meter-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.sp-meter-name { font-size: .72rem; font-weight: 600; color: rgba(255,255,255,.45); }
+.sp-meter-val { font-family: var(--font-d); font-size: .85rem; letter-spacing: 1px; color: #fff; }
+.sp-meter-track {
+  height: 4px; background: rgba(255,255,255,.08); border-radius: 100px; overflow: hidden;
+}
+.sp-meter-fill {
+  height: 100%; border-radius: 100px;
+  transition: width .8s var(--ease-out);
+}
+.spark-fill-color { background: linear-gradient(90deg, var(--electric), var(--yellow)); }
+.clarity-fill-color { background: linear-gradient(90deg, #00D084, #00cfff); }
+.potential-fill-color { background: linear-gradient(90deg, var(--yellow), #ff9500); }
+
+/* Behavior Tags */
+.sp-tags { display: flex; flex-wrap: wrap; gap: 6px; min-height: 30px; }
+.sp-tag {
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 100px; padding: 4px 11px;
+  font-size: .65rem; font-weight: 700; letter-spacing: 1px;
+  color: rgba(255,255,255,.6); text-transform: uppercase;
+  animation: tagpop .3s var(--ease-spring);
+}
+.sp-tag.electric { border-color: rgba(0,102,255,.4); color: #6db3ff; background: rgba(0,102,255,.1); }
+.sp-tag.yellow { border-color: rgba(255,195,0,.4); color: var(--yellow); background: rgba(255,195,0,.08); }
+.sp-tag.green { border-color: rgba(0,208,132,.4); color: #7fffd4; background: rgba(0,208,132,.08); }
+.sp-tag.red { border-color: rgba(255,71,87,.4); color: #ff9999; background: rgba(255,71,87,.08); }
+@keyframes tagpop {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.sp-divider { height: 1px; background: rgba(255,255,255,.06); margin: 4px 0 20px; }
+
+/* Activity feed */
+.sp-activity { display: flex; flex-direction: column; gap: 8px; }
+.sp-activity-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  animation: fadeup .3s forwards;
+}
+.sp-activity-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--electric); flex-shrink: 0; margin-top: 5px; }
+.sp-activity-text { font-size: .72rem; color: rgba(255,255,255,.4); line-height: 1.4; }
+.sp-activity-text strong { color: rgba(255,255,255,.7); }
+
+/* ======= CHAT BUBBLE ======= */
+#chat-bubble {
+  position: fixed; bottom: 80px; right: 20px; z-index: 6000;
+}
+#chat-toggle {
+  width: 52px; height: 52px;
+  background: var(--navy); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-lg); cursor: none;
+  transition: all .3s var(--ease-spring);
+  position: relative; border: none;
+}
+#chat-toggle:hover { transform: scale(1.1); background: var(--electric); }
+#chat-toggle::after {
+  content: ''; position: absolute; top: -2px; right: -2px;
+  width: 12px; height: 12px; background: var(--green);
+  border-radius: 50%; border: 2px solid var(--bg);
+  animation: blip 2s infinite;
+}
+#chat-toggle svg { width: 22px; fill: #fff; }
+#chat-panel {
+  position: absolute; bottom: 64px; right: 0;
+  width: 320px; background: var(--white);
+  border-radius: 24px; box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(6,14,31,.08);
+  overflow: hidden;
+  transform-origin: bottom right;
+  transform: scale(0.92) translateY(8px); opacity: 0;
+  pointer-events: none;
+  transition: all .35s var(--ease-spring);
+}
+#chat-panel.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
+.chat-header {
+  background: var(--navy); padding: 18px 22px;
+  display: flex; align-items: center; gap: 12px;
+}
+.chat-avatar {
+  width: 36px; height: 36px; background: var(--yellow);
+  border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 1.2rem; flex-shrink: 0;
+}
+.chat-header-info { }
+.chat-header-name { font-size: .9rem; font-weight: 700; color: #fff; }
+.chat-header-status { font-size: .7rem; color: rgba(255,255,255,.5); display: flex; align-items: center; gap: 4px; }
+.chat-online-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; }
+.chat-msgs { height: 220px; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.chat-msg {
+  max-width: 85%; padding: 10px 14px; border-radius: 14px;
+  font-size: .84rem; line-height: 1.5; animation: fadeup .3s forwards;
+}
+.chat-msg.bot {
+  background: rgba(6,14,31,.05); color: var(--navy);
+  border-radius: 4px 14px 14px 14px; align-self: flex-start;
+}
+.chat-msg.user {
+  background: var(--electric); color: #fff;
+  border-radius: 14px 4px 14px 14px; align-self: flex-end;
+}
+.chat-typing {
+  align-self: flex-start; background: rgba(6,14,31,.05);
+  padding: 10px 14px; border-radius: 4px 14px 14px 14px;
+  display: none;
+}
+.chat-typing.show { display: flex; gap: 4px; align-items: center; }
+.typing-dot { width: 6px; height: 6px; background: var(--muted); border-radius: 50%; animation: bounce 1.2s infinite; }
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-8px)} }
+.chat-quick-opts { padding: 0 14px 12px; display: flex; flex-direction: column; gap: 6px; }
+.chat-qopt {
+  background: rgba(6,14,31,.04); border: 1px solid rgba(6,14,31,.08);
+  border-radius: 10px; padding: 9px 14px;
+  font-size: .8rem; font-weight: 600; color: var(--navy); text-align: left; cursor: none;
+  transition: all .2s;
+}
+.chat-qopt:hover { border-color: var(--electric); background: rgba(0,102,255,.05); }
+.chat-input-row {
+  padding: 12px 14px; border-top: 1px solid rgba(6,14,31,.06);
+  display: flex; gap: 8px;
+}
+.chat-input {
+  flex: 1; background: rgba(6,14,31,.04); border: 1px solid rgba(6,14,31,.08);
+  border-radius: 100px; padding: 9px 16px;
+  font-size: .82rem; color: var(--navy); outline: none;
+  font-family: var(--font-b);
+  transition: border-color .2s;
+}
+.chat-input:focus { border-color: var(--electric); }
+.chat-send {
+  width: 34px; height: 34px; background: var(--electric); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; cursor: none;
+  transition: all .2s var(--ease-spring);
+}
+.chat-send:hover { transform: scale(1.1); }
+.chat-send svg { width: 14px; fill: #fff; }
+
+/* ======= WA FLOAT ======= */
+#wa-float {
+  position: fixed; bottom: 80px; left: 20px; z-index: 6000;
+  width: 52px; height: 52px; background: #25D366;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 24px rgba(37,211,102,.4); cursor: none;
+  transition: transform .3s var(--ease-spring);
+  text-decoration: none;
+}
+#wa-float:hover { transform: scale(1.15); }
+#wa-float svg { width: 26px; fill: #fff; }
+
+/* ======= MICRO ANIMS ======= */
+.text-reveal-wrap { overflow: hidden; }
+.text-reveal { transform: translateY(100%); animation: revealup .6s var(--ease-out) forwards; }
+@keyframes revealup { to { transform: translateY(0); } }
+.glow-pulse { animation: glowpulse 3s infinite; }
+@keyframes glowpulse {
+  0%,100%{box-shadow:0 0 20px rgba(0,102,255,.15)}
+  50%{box-shadow:0 0 40px rgba(0,102,255,.35)}
+}
+.float { animation: floaty 4s ease-in-out infinite; }
+@keyframes floaty { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.spin-slow { animation: spinslow 12s linear infinite; }
+@keyframes spinslow { to { transform: rotate(360deg); } }
+
+/* DNA hint shake */
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  15%{transform:translateX(-8px)}
+  35%{transform:translateX(8px)}
+  55%{transform:translateX(-5px)}
+  75%{transform:translateX(5px)}
+  90%{transform:translateX(-2px)}
+}
+.shake { animation: shake .5s var(--ease-out) !important; }
+
+/* DNA hint toast */
+#dna-hint-toast {
+  position: fixed; bottom: 90px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--navy); color: #fff;
+  padding: 12px 24px; border-radius: 100px;
+  font-size: .82rem; font-weight: 600; letter-spacing: .5px;
+  box-shadow: var(--shadow-lg); z-index: 8000;
+  opacity: 0; pointer-events: none;
+  transition: all .3s var(--ease-spring);
+  white-space: nowrap;
+}
+#dna-hint-toast.show {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+}
+
+/* DNA step counter pulse when waiting */
+.dna-prog-fill.waiting {
+  animation: waitpulse 1.5s ease-in-out infinite;
+}
+@keyframes waitpulse {
+  0%,100%{opacity:1} 50%{opacity:.5}
+}
+
+/* ======= SCROLL ANIM HIDDEN ======= */
+.hidden-anim { opacity: 0; transform: translateY(20px); transition: all .5s var(--ease-out); }
+.hidden-anim.vis { opacity: 1; transform: none; }
+
+/* ======= STEP-WIDE SIDEBAR ADJUSTMENT ======= */
+@media(min-width:701px) {
+  #stage { right: 0; transition: right .6s var(--ease-out); }
+  #stage.panel-open { right: 280px; }
+}
+@media(min-width:901px) {
+  #stage.panel-open { right: 280px; }
+}
+
+/* ======= SVG GAUGE TRANSITION ======= */
+#gauge-ring {
+  transition: stroke-dashoffset .6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ======= SCROLLBAR ======= */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(6,14,31,.15); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="csr"></div>
+<div id="csr-ring"></div>
+
+<!-- TOP JOURNEY BAR -->
+<div id="journey-bar-wrap">
+  <div class="jb-logo"><div class="jb-logo-dot"></div>POSITRON</div>
+  <div class="jb-track-wrap">
+    <div class="jb-label-row">
+      <span class="jb-label">⚡ Igniter Journey</span>
+      <span class="jb-pct" id="jb-pct">0%</span>
+    </div>
+    <div class="jb-track"><div class="jb-fill" id="jb-fill"></div></div>
+  </div>
+  <div class="jb-steps" id="jb-dots"></div>
+</div>
+
+<!-- MAIN STAGE -->
+<div id="stage">
+
+  <!-- STEP 0: HERO -->
+  <div class="step active" id="step-0">
+    <canvas id="hero-canvas"></canvas>
+    <div class="hero-content center">
+      <div class="eyebrow" style="animation-delay:.2s">JEE · NEET · NDA · BOARDS 2025</div>
+      <div class="hero-headline">NOT EVERY<br>ONE IS <span class="el">LOST</span>…</div>
+      <div class="hero-sub">Some are just untrained <strong>Igniters.</strong></div>
+      <div class="hero-exams">
+        <span class="exam-pill">JEE</span>
+        <span class="exam-pill">NEET</span>
+        <span class="exam-pill">NDA</span>
+        <span class="exam-pill">Boards</span>
+      </div>
+      <button class="hero-cta" onclick="nextStep()">
+        Start My Ignition <span class="spark-icon">⚡</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 1: PHASE CHECK -->
+  <div class="step" id="step-1">
+    <div style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:600px">
+      <div class="eyebrow center" style="width:100%">PHASE CHECK · STEP 1</div>
+      <div class="step-title center">Which phase<br>feels like you?</div>
+      <div class="step-sub center">Be honest. This shapes your entire Igniter plan.</div>
+      <div class="choice-stack" id="phase-choices">
+        <div class="c-card" data-tag="Inconsistent Spark" data-type="POTENTIAL IGNITER" onclick="selectPhase(this,'Inconsistent — tries but drifts',1)">
+          <div class="c-card-glow"></div>
+          <div class="c-icon">⚡</div>
+          <div class="c-text"><div class="c-label">Trying, but inconsistent</div><div class="c-sublabel">I start strong then lose momentum</div></div>
+          <div class="c-check"><div class="c-check-inner"></div></div>
+        </div>
+        <div class="c-card" data-tag="Result-Hungry" data-type="FOCUSED IGNITER" onclick="selectPhase(this,'Working hard, no results',2)">
+          <div class="c-card-glow"></div>
+          <div class="c-icon">🔥</div>
+          <div class="c-text"><div class="c-label">Working hard, but no results</div><div class="c-sublabel">I put in hours but the scores don't move</div></div>
+          <div class="c-check"><div class="c-check-inner"></div></div>
+        </div>
+        <div class="c-card" data-tag="Explorer" data-type="EMERGING IGNITER" onclick="selectPhase(this,'Still figuring out the path',3)">
+          <div class="c-card-glow"></div>
+          <div class="c-icon">🌀</div>
+          <div class="c-text"><div class="c-label">Still figuring it out</div><div class="c-sublabel">Not sure where to start or what's missing</div></div>
+          <div class="c-check"><div class="c-check-inner"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: ASPIRATION -->
+  <div class="step" id="step-2">
+    <div style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:680px">
+      <div class="eyebrow center" style="width:100%">YOUR SPARK · STEP 2</div>
+      <div class="step-title center">If this spark turns<br>into fire…</div>
+      <div class="step-sub center">What changes most for you?</div>
+      <div class="asp-grid" id="asp-choices">
+        <div class="asp-card" data-tag="Competitive" onclick="selectAsp(this,'I get ahead of everyone')">
+          <span class="asp-emoji">🏆</span>
+          <div class="asp-label">I get ahead of everyone</div>
+        </div>
+        <div class="asp-card" data-tag="Independent" onclick="selectAsp(this,'I become independent')">
+          <span class="asp-emoji">🦅</span>
+          <div class="asp-label">I become independent</div>
+        </div>
+        <div class="asp-card" data-tag="Prove Myself" onclick="selectAsp(this,'I prove myself')">
+          <span class="asp-emoji">💪</span>
+          <div class="asp-label">I prove myself to everyone</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: NAME CAPTURE (Progressive — first touch) -->
+  <div class="step" id="step-3">
+    <div style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:500px;text-align:center">
+      <div class="eyebrow center" style="width:100%">IGNITER IDENTITY · STEP 3</div>
+      <div class="step-title center" id="name-title">What should we<br>call you?</div>
+      <div class="step-sub center">Your Igniter plan is being built right now.</div>
+      <div class="input-row">
+        <input class="input-field" id="igniter-name" type="text" placeholder="Your first name…" autocomplete="given-name" maxlength="40" oninput="onNameInput()" onkeydown="if(event.key==='Enter')nextStep()">
+        <select class="input-field" id="igniter-exam" style="animation-delay:.4s" onchange="onExamSelect()">
+          <option value="">Your target exam</option>
+          <option>JEE Main</option>
+          <option>JEE Advanced</option>
+          <option>NEET UG</option>
+          <option>NDA</option>
+          <option>Board Exams (12th)</option>
+        </select>
+        <div class="input-hint">Your data stays private. No spam, ever.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4: 3D ATOM -->
+  <div class="step" id="step-4">
+    <canvas id="three-canvas"></canvas>
+    <div class="atom-overlay">
+      <div class="eyebrow atom-eyebrow" style="animation-delay:.1s">THE POSITRON SYSTEM</div>
+      <div class="step-title atom-headline" style="font-size:clamp(2.5rem,7vw,5rem)">IGNITER<br>→ SYSTEM<br>→ RESULT</div>
+      <div class="step-sub atom-sub" style="max-width:360px;margin:0 auto 24px">A living preparation engine built around your exact potential.</div>
+      <div class="atom-nodes-legend">
+        <div class="node-pill"><div class="node-pill-dot" style="background:#0066FF"></div>Smart Curriculum</div>
+        <div class="node-pill"><div class="node-pill-dot" style="background:#FFC300"></div>Performance Tracking</div>
+        <div class="node-pill"><div class="node-pill-dot" style="background:#00D084"></div>AI Mentorship</div>
+        <div class="node-pill"><div class="node-pill-dot" style="background:#FF6B6B"></div>Rank Optimization</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5: PRODUCT SYSTEM -->
+  <div class="step" id="step-5">
+    <div style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:740px">
+      <div class="eyebrow center" style="width:100%">POSITRON MODULES · STEP 5</div>
+      <div class="step-title center" style="font-size:clamp(2.2rem,5vw,4rem)">The Complete<br>Ignition System</div>
+      <div class="prod-grid">
+        <div class="prod-card">
+          <div class="prod-icon">🧠</div>
+          <div class="prod-title">SMART CURRICULUM</div>
+          <div class="prod-desc">Adaptive topic sequencing that finds your weak zones and sequences content for maximum gain.</div>
+          <div class="prod-badge">Adaptive Engine</div>
+        </div>
+        <div class="prod-card">
+          <div class="prod-icon">📊</div>
+          <div class="prod-title">PERFORMANCE TRACKING</div>
+          <div class="prod-desc">Chapter-wise accuracy, rank prediction, time-per-question analytics — all live.</div>
+          <div class="prod-badge">Live Analytics</div>
+        </div>
+        <div class="prod-card">
+          <div class="prod-icon">🤖</div>
+          <div class="prod-title">AI MENTORSHIP</div>
+          <div class="prod-desc">24/7 doubt-clearing, personalised study plans, and motivational checkpoints driven by AI + expert mentors.</div>
+          <div class="prod-badge">Always On</div>
+        </div>
+        <div class="prod-card">
+          <div class="prod-icon">🎯</div>
+          <div class="prod-title">RANK OPTIMIZATION</div>
+          <div class="prod-desc">Strategic exam simulations, cut-off targeting, and percentile maximization refined by 340+ top rankers.</div>
+          <div class="prod-badge">Rank Engine</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 6: DNA SCAN TOOL -->
+  <div class="step" id="step-6">
+    <div style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:600px">
+      <div class="eyebrow center" style="width:100%">⚡ IGNITER DNA SCAN · STEP 6</div>
+      <div class="step-title center" style="font-size:clamp(2rem,5vw,3.8rem)">Your<br>Igniter DNA</div>
+      <div class="step-sub center">3 questions to map your ignition profile.</div>
+      <div class="dna-wrap">
+        <div class="dna-progress">
+          <div class="dna-prog-labels">
+            <span class="dna-prog-label">QUESTION <span id="dna-q-num">1</span> OF 3</span>
+            <span class="dna-prog-val" id="dna-q-pct">33%</span>
+          </div>
+          <div class="dna-prog-track"><div class="dna-prog-fill" id="dna-prog" style="width:33%"></div></div>
+        </div>
+        <div id="dna-questions"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 7: SPARK METER -->
+  <div class="step" id="step-7">
+    <div style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:560px">
+      <div class="eyebrow center" style="width:100%">🔥 SPARK LEVEL METER · STEP 7</div>
+      <div class="step-title center" style="font-size:clamp(2rem,5vw,3.5rem)">Calibrate<br>Your Spark</div>
+      <div class="step-sub center">Drag to reflect your reality. We'll calculate your ignition score.</div>
+      <div class="spark-wrap">
+        <div class="spark-central">
+          <div class="spark-gauge-wrap">
+            <div class="spark-gauge">
+              <svg width="90" height="90" viewBox="0 0 90 90">
+                <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(6,14,31,.07)" stroke-width="7"/>
+                <circle cx="45" cy="45" r="38" fill="none" id="gauge-ring"
+                  stroke="url(#gauge-grad)" stroke-width="7"
+                  stroke-linecap="round" stroke-dasharray="238.8"
+                  stroke-dashoffset="143" transition="stroke-dashoffset .6s ease"/>
+                <defs>
+                  <linearGradient id="gauge-grad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stop-color="#0066FF"/>
+                    <stop offset="100%" stop-color="#FFC300"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div class="spark-gauge-val">
+                <span class="spark-gauge-num" id="gauge-num">40</span>
+                <span class="spark-gauge-unit">SPARK</span>
+              </div>
+            </div>
+            <div class="spark-meta">
+              <h3 id="spark-lvl-title">WARMING UP</h3>
+              <p id="spark-lvl-desc">Increase your study intensity and consistency to ignite your potential.</p>
+            </div>
+          </div>
+          <div class="spark-sliders">
+            <div class="spark-row">
+              <label>Study Hours / Day <span id="lbl-h">4h</span></label>
+              <input type="range" id="r-h" min="1" max="12" value="4" oninput="updateSpark()">
+            </div>
+            <div class="spark-row">
+              <label>Consistency <span id="lbl-c">5/10</span></label>
+              <input type="range" id="r-c" min="1" max="10" value="5" oninput="updateSpark()">
+            </div>
+            <div class="spark-row">
+              <label>Mock Tests / Month <span id="lbl-m">4</span></label>
+              <input type="range" id="r-m" min="0" max="20" value="4" oninput="updateSpark()">
+            </div>
+          </div>
+        </div>
+        <div class="mini-meters">
+          <div class="mini-meter">
+            <div class="mm-val" id="mm-spark">40</div>
+            <div class="mm-bar"><div class="mm-fill spark-fill-color" id="mm-spark-bar" style="width:40%"></div></div>
+            <div class="mm-label">Spark Level</div>
+          </div>
+          <div class="mini-meter">
+            <div class="mm-val" id="mm-clarity">55</div>
+            <div class="mm-bar"><div class="mm-fill clarity-fill-color" id="mm-clarity-bar" style="width:55%"></div></div>
+            <div class="mm-label">Clarity</div>
+          </div>
+          <div class="mini-meter">
+            <div class="mm-val" id="mm-potential">72</div>
+            <div class="mm-bar"><div class="mm-fill potential-fill-color" id="mm-potential-bar" style="width:72%"></div></div>
+            <div class="mm-label">Potential</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 8: PHONE CAPTURE (Progressive — second touch) -->
+  <div class="step" id="step-8">
+    <div style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:500px;text-align:center">
+      <div class="eyebrow center" style="width:100%">IGNITION UNLOCK · STEP 8</div>
+      <div class="step-title center" id="unlock-title">One step to<br>your full report</div>
+      <div class="step-sub center" id="unlock-sub">Your Igniter profile is 90% ready. Drop your number to unlock the full analysis — no spam, only your plan.</div>
+      <div class="input-row">
+        <input class="input-field" id="igniter-phone" type="tel" placeholder="WhatsApp number (10 digits)" maxlength="10" oninput="onPhoneInput()" onkeydown="if(event.key==='Enter')nextStep()" style="font-size:1.1rem;letter-spacing:2px">
+        <div style="opacity:0;animation:fadeup .5s .5s forwards;font-size:.8rem;color:var(--muted);display:flex;align-items:center;gap:8px">
+          <span>🔒</span> Your number is used only to send your personalised Igniter plan
+        </div>
+      </div>
+      <div style="opacity:0;animation:fadeup .6s .6s forwards;margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+        <div class="trust-pill"><div class="trust-pill-dot"></div>12,000+ Igniters Enrolled</div>
+        <div class="trust-pill"><div class="trust-pill-dot"></div>Zero Spam Policy</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 9: RESULT + FINAL CTA -->
+  <div class="step" id="step-9">
+    <div style="display:flex;flex-direction:column;align-items:center;width:100%;padding-bottom:10px">
+      <div class="result-wrap">
+        <div class="result-hero">
+          <div class="result-badge">⚡ YOUR IGNITER PROFILE IS READY</div>
+          <div class="result-title"><span id="r-name-display">You</span> Are A<br><span class="accent" id="r-type-display">HIGH-POTENTIAL</span><br>IGNITER</div>
+          <div class="result-desc" id="r-desc-display">Your pattern reveals raw, untapped potential. You're not behind — you're just one system away from igniting.</div>
+          <div class="result-stats">
+            <div class="rs-box"><div class="rs-val" id="r-match">87%</div><div class="rs-label">Match Score</div></div>
+            <div class="rs-box"><div class="rs-val" id="r-growth">4x</div><div class="rs-label">Growth Potential</div></div>
+            <div class="rs-box"><div class="rs-val" id="r-days">90d</div><div class="rs-label">First Milestone</div></div>
+          </div>
+        </div>
+        <div class="result-ctas">
+          <button class="btn-ignite" onclick="openWA()">⚡ GET MY IGNITER PLAN</button>
+          <a class="btn-wa" href="#" onclick="openWA();return false">
+            <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+            WhatsApp Now
+          </a>
+        </div>
+        <div class="trust-mini">
+          <div class="trust-pill"><div class="trust-pill-dot"></div>AIR 847 — Arjun S. <span class="trust-pill-rank">JEE ADV</span></div>
+          <div class="trust-pill"><div class="trust-pill-dot"></div>695/720 — Priya N. <span class="trust-pill-rank">NEET</span></div>
+          <div class="trust-pill"><div class="trust-pill-dot"></div>NDA 149 — Rohit V. <span class="trust-pill-rank">NDA</span></div>
+        </div>
+        <div class="urgency-strip">
+          <div class="urgency-dot"></div>
+          <div class="urgency-text">New Ignition Cycle · Only <strong>23 seats</strong> remaining</div>
+          <div class="urgency-cd" id="urgency-cd">07:14:32</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end stage -->
+
+<!-- STEP NAV -->
+<div id="step-nav">
+  <button class="nav-back" id="nav-back" onclick="prevStep()">← Back</button>
+  <button class="nav-next" id="nav-next" onclick="nextStep()">
+    Continue <span class="arrow">→</span>
+  </button>
+</div>
+
+<!-- SIDE PANEL -->
+<div id="side-panel">
+  <div class="sp-header">⚡ Live Igniter Analysis</div>
+  
+  <div class="sp-section">
+    <div class="sp-label">Igniter Type</div>
+    <div class="sp-type" id="sp-type">—</div>
+    <div class="sp-name-val" id="sp-name">Identifying…</div>
+  </div>
+  <div class="sp-divider"></div>
+
+  <div class="sp-section">
+    <div class="sp-label">Real-Time Metrics</div>
+    <div class="sp-meters">
+      <div class="sp-meter">
+        <div class="sp-meter-row"><span class="sp-meter-name">Spark Level</span><span class="sp-meter-val" id="sp-spark-val">0%</span></div>
+        <div class="sp-meter-track"><div class="sp-meter-fill spark-fill-color" id="sp-spark-bar" style="width:0%"></div></div>
+      </div>
+      <div class="sp-meter">
+        <div class="sp-meter-row"><span class="sp-meter-name">Clarity Score</span><span class="sp-meter-val" id="sp-clarity-val">0%</span></div>
+        <div class="sp-meter-track"><div class="sp-meter-fill clarity-fill-color" id="sp-clarity-bar" style="width:0%"></div></div>
+      </div>
+      <div class="sp-meter">
+        <div class="sp-meter-row"><span class="sp-meter-name">Potential Index</span><span class="sp-meter-val" id="sp-potential-val">0%</span></div>
+        <div class="sp-meter-track"><div class="sp-meter-fill potential-fill-color" id="sp-potential-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="sp-divider"></div>
+
+  <div class="sp-section">
+    <div class="sp-label">Behavioral Tags</div>
+    <div class="sp-tags" id="sp-tags"></div>
+  </div>
+  <div class="sp-divider"></div>
+
+  <div class="sp-section">
+    <div class="sp-label">Activity Log</div>
+    <div class="sp-activity" id="sp-activity"></div>
+  </div>
+</div>
+
+<!-- CHAT BUBBLE -->
+<div id="chat-bubble">
+  <div id="chat-panel">
+    <div class="chat-header">
+      <div class="chat-avatar">⚡</div>
+      <div class="chat-header-info">
+        <div class="chat-header-name">Igniter AI</div>
+        <div class="chat-header-status"><div class="chat-online-dot"></div>Powered by Positron</div>
+      </div>
+    </div>
+    <div class="chat-msgs" id="chat-msgs">
+      <div class="chat-msg bot">Hey Igniter ⚡<br>Are you <strong>progressing</strong>… or just <em>trying?</em></div>
+    </div>
+    <div class="chat-typing" id="chat-typing">
+      <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+    </div>
+    <div class="chat-quick-opts" id="chat-opts">
+      <button class="chat-qopt" onclick="chatOption('Progressing but slowly')">Progressing but slowly</button>
+      <button class="chat-qopt" onclick="chatOption('Need direction urgently')">Need direction urgently</button>
+      <button class="chat-qopt" onclick="chatOption('Tell me about my profile')">Tell me about my profile</button>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chat-in" placeholder="Ask anything…" onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="chat-send" onclick="sendChat()">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+  <button id="chat-toggle" onclick="toggleChat()">
+    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+  </button>
+</div>
+
+<!-- WA FLOAT -->
+<div id="dna-hint-toast">⚡ Answer this question to continue</div>
+<a id="wa-float" href="#" onclick="openWA();return false">
+  <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+</a>
+
+<!-- ============================================================ -->
+<!-- SCRIPT ENGINE -->
+<!-- ============================================================ -->
+<script>
+'use strict';
+
+/* =====================================================
+   GLOBAL STATE
+===================================================== */
+const S = {
+  step: 0,
+  name: '', exam: '', phone: '',
+  phase: '', aspiration: '',
+  phaseTag: '', phaseType: '', phaseCardEl: null,
+  dnaAnswers: [],
+  dnaStep: 0,       // 0–3: how many DNA questions completed
+  spark: 20, clarity: 20, potential: 20,
+  tags: new Set(),
+  activity: [],
+  chatOpen: false,
+  threeInited: false,
+  sectionTimes: {},
+  stepEnterTime: Date.now(),
+  urgencyStarted: false,
+};
+
+const TOTAL_STEPS = 10;
+
+/* =====================================================
+   CURSOR
+===================================================== */
+const csr     = document.getElementById('csr');
+const csrRing = document.getElementById('csr-ring');
+document.addEventListener('mousemove', e => {
+  csr.style.left     = e.clientX + 'px';
+  csr.style.top      = e.clientY + 'px';
+  csrRing.style.left = e.clientX + 'px';
+  csrRing.style.top  = e.clientY + 'px';
+  // Mouse-glow on choice cards
+  document.querySelectorAll('.c-card').forEach(c => {
+    const r = c.getBoundingClientRect();
+    c.style.setProperty('--gx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+    c.style.setProperty('--gy', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+  });
+});
+document.addEventListener('mouseover', e => {
+  if (e.target.closest('button,a,.c-card,.asp-card,.dna-opt,.prod-card,.chat-qopt'))
+    document.body.classList.add('hovering');
+});
+document.addEventListener('mouseout', e => {
+  if (e.target.closest('button,a,.c-card,.asp-card,.dna-opt,.prod-card,.chat-qopt'))
+    document.body.classList.remove('hovering');
+});
+
+/* =====================================================
+   JOURNEY BAR
+===================================================== */
+function buildDots() {
+  const wrap = document.getElementById('jb-dots');
+  wrap.innerHTML = '';
+  for (let i = 0; i < TOTAL_STEPS; i++) {
+    const d = document.createElement('div');
+    d.className = 'jb-step-dot';
+    d.id = 'dot-' + i;
+    wrap.appendChild(d);
+  }
+}
+function updateJourneyBar(step) {
+  const pct = Math.round((step / (TOTAL_STEPS - 1)) * 100);
+  document.getElementById('jb-fill').style.width = pct + '%';
+  document.getElementById('jb-pct').textContent = pct + '%';
+  for (let i = 0; i < TOTAL_STEPS; i++) {
+    const d = document.getElementById('dot-' + i);
+    if (!d) continue;
+    d.className = 'jb-step-dot' + (i < step ? ' done' : i === step ? ' active' : '');
+  }
+}
+buildDots();
+
+/* =====================================================
+   STEP ENGINE
+===================================================== */
+let transitioning = false;
+
+function showStep(n, dir) {
+  if (transitioning) return;
+  dir = dir || 'up';
+  const cur = document.querySelector('.step.active');
+  const nxt = document.getElementById('step-' + n);
+  if (!nxt || !cur) return;
+
+  // Record time on previous step
+  S.sectionTimes[S.step] = (S.sectionTimes[S.step] || 0) + (Date.now() - S.stepEnterTime);
+  S.stepEnterTime = Date.now();
+
+  transitioning = true;
+
+  // Animate out
+  cur.classList.add(dir === 'up' ? 'exit-up' : 'exit-down');
+  cur.classList.remove('active');
+
+  // Animate in
+  nxt.classList.add('active');
+
+  // Cleanup
+  setTimeout(function() {
+    cur.classList.remove('exit-up', 'exit-down');
+    transitioning = false;
+    onStepEnter(n);
+  }, 650);
+
+  // Safety: always release lock
+  setTimeout(function() { transitioning = false; }, 1200);
+
+  S.step = n;
+  updateJourneyBar(n);
+  updateNavBtns(n);
+
+  // Side panel visible from step 1 onwards
+  if (n >= 1) {
+    document.getElementById('side-panel').classList.add('open');
+    document.getElementById('stage').classList.add('panel-open');
+  }
+}
+
+function onStepEnter(n) {
+  if (n === 4 && !S.threeInited) initThree();
+  if (n === 6) initDNA();
+  if (n === 8) {
+    var t = document.getElementById('unlock-title');
+    var sb = document.getElementById('unlock-sub');
+    if (S.name) {
+      t.innerHTML = 'Almost there,<br>' + S.name + '!';
+      sb.textContent = 'Your Igniter report is 90% ready. One last step unlocks everything.';
+    }
+  }
+  if (n === 9) buildResult();
+  addActivity('Entered step ' + (n + 1) + ' / ' + TOTAL_STEPS);
+  addTag('Step ' + (n + 1), 'electric');
+}
+
+function updateNavBtns(n) {
+  var back = document.getElementById('nav-back');
+  var next = document.getElementById('nav-next');
+  var nav  = document.getElementById('step-nav');
+
+  back.style.visibility = (n === 0) ? 'hidden' : 'visible';
+  nav.classList.toggle('hidden', n === 9);
+
+  // Steps 1 & 2 need a choice before continuing
+  var needsChoice = (n === 1 && !S.phase) || (n === 2 && !S.aspiration);
+  next.disabled = needsChoice;
+
+  var labels = [
+    'Begin',               // 0
+    'Continue',            // 1
+    'Continue',            // 2
+    'Next: See the System',// 3
+    'Explore the System',  // 4
+    'Discover Tools',      // 5
+    'Answer to Continue',  // 6
+    'Calibrate Spark',     // 7
+    'Unlock My Report',    // 8
+    ''                     // 9
+  ];
+  next.innerHTML = (labels[n] || 'Continue') + ' <span class="arrow">\u2192</span>';
+}
+
+function nextStep() {
+  if (S.step >= TOTAL_STEPS - 1) return;
+
+  // --- Step 3: name + exam required ---
+  if (S.step === 3) {
+    var nm = (document.getElementById('igniter-name').value || '').trim();
+    var ex = document.getElementById('igniter-exam').value;
+    if (!nm) { flashEl(document.getElementById('igniter-name')); return; }
+    if (!ex) { flashEl(document.getElementById('igniter-exam')); return; }
+    S.name = nm;
+    S.exam = ex;
+    addTag('Named', 'green');
+    updateSPName(S.name + ' (Igniter)');
+  }
+
+  // --- Step 6: DNA must be complete ---
+  if (S.step === 6) {
+    if (S.dnaStep < 3) {
+      showDNANudge();
+      return;
+    }
+  }
+
+  // --- Step 8: phone required ---
+  if (S.step === 8) {
+    var ph = (document.getElementById('igniter-phone').value || '').replace(/\D/g, '').slice(0, 10);
+    if (ph.length < 10) { flashEl(document.getElementById('igniter-phone')); return; }
+    S.phone = ph;
+    addTag('Phone Captured', 'green');
+    addTag('High Intent', 'yellow');
+    addActivity('Phone captured: <strong>+91 ' + ph.slice(0, 5) + 'XXXXX</strong>');
+  }
+
+  showStep(S.step + 1, 'up');
+}
+
+function prevStep() {
+  if (S.step <= 0) return;
+  showStep(S.step - 1, 'down');
+}
+
+function flashEl(el) {
+  if (!el) return;
+  el.style.borderColor = '#FF4757';
+  el.style.boxShadow   = '0 0 0 4px rgba(255,71,87,.12)';
+  el.focus && el.focus();
+  setTimeout(function() {
+    el.style.borderColor = '';
+    el.style.boxShadow   = '';
+  }, 1600);
+}
+
+/* =====================================================
+   DNA NUDGE (replaces old showDNAHint)
+===================================================== */
+function showDNANudge() {
+  // Shake the button
+  var btn = document.getElementById('nav-next');
+  btn.classList.remove('shake');
+  void btn.offsetWidth;
+  btn.classList.add('shake');
+  setTimeout(function() { btn.classList.remove('shake'); }, 600);
+
+  // Toast
+  var toast = document.getElementById('dna-hint-toast');
+  if (!toast) return;
+  var rem = 3 - S.dnaStep;
+  toast.textContent = rem >= 3
+    ? '\u26A1 Pick an answer to start your DNA scan'
+    : '\u26A1 ' + rem + ' question' + (rem > 1 ? 's' : '') + ' left \u2014 select an option above';
+  toast.classList.add('show');
+  setTimeout(function() { toast.classList.remove('show'); }, 2500);
+}
+
+/* =====================================================
+   HERO PARTICLES
+===================================================== */
+(function() {
+  var c = document.getElementById('hero-canvas');
+  if (!c) return;
+  var ctx = c.getContext('2d');
+  var W, H;
+  function resize() { W = c.width = c.offsetWidth; H = c.height = c.offsetHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+  var pts = [];
+  for (var i = 0; i < 55; i++) {
+    pts.push({
+      x: Math.random() * 1600, y: Math.random() * 900,
+      vx: (Math.random() - .5) * .4, vy: (Math.random() - .5) * .4,
+      r: Math.random() * 1.8 + .4,
+      a: Math.random() * .4 + .1,
+      col: Math.random() > .5 ? '0,102,255' : '255,195,0'
+    });
+  }
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (var i = 0; i < pts.length; i++) {
+      var p = pts[i];
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(' + p.col + ',' + p.a + ')';
+      ctx.fill();
+    }
+    for (var i = 0; i < pts.length; i++) {
+      for (var j = i + 1; j < pts.length; j++) {
+        var dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
+        var d = Math.sqrt(dx * dx + dy * dy);
+        if (d < 90) {
+          ctx.beginPath();
+          ctx.strokeStyle = 'rgba(0,102,255,' + (.07 * (1 - d / 90)) + ')';
+          ctx.lineWidth = .5;
+          ctx.moveTo(pts[i].x, pts[i].y);
+          ctx.lineTo(pts[j].x, pts[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* =====================================================
+   THREE.JS ATOM
+===================================================== */
+function initThree() {
+  S.threeInited = true;
+  var canvas  = document.getElementById('three-canvas');
+  var section = document.getElementById('step-4');
+  if (!canvas || !section || typeof THREE === 'undefined') return;
+
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  var scene  = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(55, 1, .1, 100);
+  camera.position.z = 5;
+
+  function resize() {
+    var W = section.offsetWidth, H = section.offsetHeight || window.innerHeight;
+    renderer.setSize(W, H);
+    camera.aspect = W / H;
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Core sphere
+  var core = new THREE.Mesh(
+    new THREE.SphereGeometry(.25, 32, 32),
+    new THREE.MeshBasicMaterial({ color: 0x0066FF })
+  );
+  scene.add(core);
+
+  // Wireframe shell
+  scene.add(new THREE.Mesh(
+    new THREE.SphereGeometry(.42, 32, 32),
+    new THREE.MeshBasicMaterial({ color: 0x0066FF, transparent: true, opacity: .07, wireframe: true })
+  ));
+
+  // Orbital rings
+  var ringColors = [0xFFC300, 0x0066FF, 0x00D084, 0xFF6B6B];
+  var rings = ringColors.map(function(col, i) {
+    var r = new THREE.Mesh(
+      new THREE.TorusGeometry(.55 + i * .12, .012, 10, 90),
+      new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .75 })
+    );
+    r.rotation.x = Math.PI / (2.2 + i * .5);
+    r.rotation.y = Math.PI / (3 + i * .8);
+    scene.add(r);
+    return r;
+  });
+
+  // Electrons
+  var electrons = rings.map(function(ring, i) {
+    var e = new THREE.Mesh(
+      new THREE.SphereGeometry(.07, 12, 12),
+      new THREE.MeshBasicMaterial({ color: ringColors[i] })
+    );
+    scene.add(e);
+    return { mesh: e, angle: (Math.PI * 2 / 4) * i, speed: .018 + i * .004, radius: .55 + i * .12 };
+  });
+
+  // System nodes + lines
+  var nodeData = [
+    { pos: [-2.2, 1.2, 0], col: 0x0066FF },
+    { pos: [2.2, 1.0, 0],  col: 0xFFC300 },
+    { pos: [-2.0, -1.2, 0],col: 0x00D084 },
+    { pos: [2.0, -1.3, 0], col: 0xFF6B6B },
+    { pos: [0, 2.2, 0],    col: 0x9B59B6 },
+    { pos: [0, -2.2, 0],   col: 0x00cfff },
+  ];
+  var nodes = nodeData.map(function(nd) {
+    var m = new THREE.Mesh(
+      new THREE.SphereGeometry(.1, 16, 16),
+      new THREE.MeshBasicMaterial({ color: nd.col, transparent: true, opacity: .85 })
+    );
+    m.position.set(nd.pos[0], nd.pos[1], nd.pos[2]);
+    scene.add(m);
+    // Line to core
+    var pts  = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(nd.pos[0], nd.pos[1], nd.pos[2])];
+    var geo  = new THREE.BufferGeometry().setFromPoints(pts);
+    var mat  = new THREE.LineBasicMaterial({ color: nd.col, transparent: true, opacity: .18 });
+    scene.add(new THREE.Line(geo, mat));
+    return { mesh: m, base: [nd.pos[0], nd.pos[1], nd.pos[2]], phase: Math.random() * Math.PI * 2 };
+  });
+
+  // Cross-node lines
+  [[0,2],[1,3],[0,4],[1,4],[2,5],[3,5]].forEach(function(pair) {
+    var a = nodeData[pair[0]].pos, b = nodeData[pair[1]].pos;
+    var geo = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(a[0],a[1],a[2]),
+      new THREE.Vector3(b[0],b[1],b[2])
+    ]);
+    scene.add(new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .04 })));
+  });
+
+  var mx = 0, my = 0;
+  document.addEventListener('mousemove', function(e) {
+    mx = (e.clientX / innerWidth - .5) * 2;
+    my = -(e.clientY / innerHeight - .5) * 2;
+  });
+
+  var t = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    if (S.step !== 4) return;
+    t += .012;
+    rings.forEach(function(r, i) { r.rotation.z += .006 + i * .002; r.rotation.x += .003; });
+    core.rotation.y += .01;
+    electrons.forEach(function(e) {
+      e.angle += e.speed;
+      e.mesh.position.x = Math.cos(e.angle) * e.radius;
+      e.mesh.position.y = Math.sin(e.angle) * e.radius * .6;
+      e.mesh.position.z = Math.sin(e.angle) * e.radius * .4;
+    });
+    nodes.forEach(function(nd, i) {
+      nd.mesh.position.y = nd.base[1] + Math.sin(t + nd.phase) * .1;
+      nd.mesh.material.opacity = .45 + Math.sin(t * 1.5 + i) * .4;
+    });
+    scene.rotation.y += (mx * .4 - scene.rotation.y) * .04;
+    scene.rotation.x += (my * .2 - scene.rotation.x) * .04;
+    renderer.render(scene, camera);
+  }
+  animate();
+}
+
+/* =====================================================
+   PHASE SELECTION (Step 1)
+===================================================== */
+function selectPhase(el, val) {
+  document.querySelectorAll('#phase-choices .c-card').forEach(function(c) { c.classList.remove('selected'); });
+  el.classList.add('selected');
+  S.phase       = val;
+  S.phaseTag    = el.dataset.tag  || '';
+  S.phaseType   = el.dataset.type || 'IGNITER';
+  S.phaseCardEl = el;
+  addTag(S.phaseTag, 'yellow');
+  updateSPType(S.phaseType);
+  addActivity('Phase: <strong>' + val + '</strong>');
+  updateMetrics(10, 15, 20);
+  document.getElementById('nav-next').disabled = false;
+  setTimeout(function() { if (S.step === 1) nextStep(); }, 650);
+}
+
+/* =====================================================
+   ASPIRATION SELECTION (Step 2)
+===================================================== */
+function selectAsp(el, val) {
+  document.querySelectorAll('#asp-choices .asp-card').forEach(function(c) { c.classList.remove('selected'); });
+  el.classList.add('selected');
+  S.aspiration = val;
+  addTag(el.dataset.tag || 'Aspiration', 'electric');
+  addActivity('Aspiration: <strong>' + val + '</strong>');
+  updateMetrics(8, 20, 15);
+  document.getElementById('nav-next').disabled = false;
+  setTimeout(function() { if (S.step === 2) nextStep(); }, 650);
+}
+
+/* =====================================================
+   NAME / EXAM INPUTS (Step 3)
+===================================================== */
+function onNameInput() {
+  var v = (document.getElementById('igniter-name').value || '').trim();
+  S.name = v;
+  if (v.length > 1) {
+    updateSPName(v + ' (Igniter)');
+    addActivity('Name entered: <strong>' + v + '</strong>');
+    addTag('Named', 'green');
+  }
+}
+function onExamSelect() {
+  var v = document.getElementById('igniter-exam').value;
+  S.exam = v;
+  if (v) {
+    addTag(v, 'electric');
+    addActivity('Exam: <strong>' + v + '</strong>');
+    updateMetrics(5, 25, 10);
+  }
+}
+
+/* =====================================================
+   DNA SCAN (Step 6) — clean, lock-free implementation
+===================================================== */
+var DNA_Q = [
+  {
+    q: 'When do you absorb concepts fastest?',
+    opts: [
+      { t: 'Early morning — fresh mind, zero distractions', s: [10, 8, 8] },
+      { t: 'Late night — quieter, more focused',            s: [8, 6, 9]  },
+      { t: 'Whenever I sit in front of good content',       s: [6, 7, 7]  },
+      { t: 'Only when exam pressure kicks in',              s: [4, 4, 5]  },
+    ]
+  },
+  {
+    q: 'What kills your study session most often?',
+    opts: [
+      { t: 'Phone & social media',                         s: [6, 5, 6] },
+      { t: 'Getting stuck with no one to ask',             s: [7, 8, 7] },
+      { t: 'Effort not showing in results',                s: [5, 6, 9] },
+      { t: 'No structured plan to follow',                 s: [8, 9, 7] },
+    ]
+  },
+  {
+    q: 'How do you respond after a bad test?',
+    opts: [
+      { t: 'Analyse every wrong answer immediately',  s: [10, 9, 10] },
+      { t: 'Take a break then come back stronger',    s: [8, 7, 8]   },
+      { t: 'Get demotivated, takes time to restart',  s: [4, 5, 6]   },
+      { t: 'Move on without deep analysis',           s: [3, 4, 4]   },
+    ]
+  }
+];
+
+// Called once when entering step 6
+function initDNA() {
+  S.dnaAnswers = [];
+  S.dnaStep    = 0;
+  renderDNAQuestion(0);
+  updateDNANavLabel();
+}
+
+function renderDNAQuestion(idx) {
+  var wrap = document.getElementById('dna-questions');
+  if (!wrap) return;
+
+  // All 3 answered — show completion screen
+  if (idx >= DNA_Q.length) {
+    dnaComplete();
+    return;
+  }
+
+  var q   = DNA_Q[idx];
+  var pct = Math.round(((idx + 1) / DNA_Q.length) * 100);
+
+  // Update progress bar
+  document.getElementById('dna-q-num').textContent  = idx + 1;
+  document.getElementById('dna-q-pct').textContent  = pct + '%';
+  document.getElementById('dna-prog').style.width   = pct + '%';
+
+  // Render question + options
+  // Each option gets a stable id for direct selection
+  var html = '<div class="dna-q" style="animation:fadeup .4s both">' + q.q + '</div><div class="dna-opts">';
+  q.opts.forEach(function(o, i) {
+    html += '<div class="dna-opt" id="dna-o-' + i + '" onclick="answerDNA(' + idx + ',' + i + ')" '
+          + 'style="animation:fadeup .4s ' + ((i * .08) + .08) + 's both">'
+          + '<div class="dna-dot"><div class="dna-dot-inner"></div></div>'
+          + '<div class="dna-opt-text">' + o.t + '</div>'
+          + '</div>';
+  });
+  html += '</div>';
+  wrap.innerHTML = html;
+}
+
+function answerDNA(qIdx, optIdx) {
+  // Ignore if this isn't the current question
+  if (qIdx !== S.dnaStep) return;
+
+  var opt = DNA_Q[qIdx].opts[optIdx];
+
+  // Highlight selection
+  document.querySelectorAll('.dna-opt').forEach(function(el) { el.classList.remove('sel'); });
+  var selected = document.getElementById('dna-o-' + optIdx);
+  if (selected) selected.classList.add('sel');
+
+  // Record answer
+  S.dnaAnswers.push({ q: qIdx, a: optIdx, scores: opt.s });
+  S.dnaStep = qIdx + 1;
+
+  // Update metrics + side panel
+  updateMetrics(opt.s[0], opt.s[1], opt.s[2]);
+  addActivity('DNA Q' + (qIdx + 1) + ': <strong>' + opt.t.slice(0, 34) + '\u2026</strong>');
+
+  // Update nav button live
+  updateDNANavLabel();
+
+  // Hide any nudge toast
+  var toast = document.getElementById('dna-hint-toast');
+  if (toast) toast.classList.remove('show');
+
+  // Advance to next question after a short visual pause
+  setTimeout(function() { renderDNAQuestion(S.dnaStep); }, 480);
+}
+
+function updateDNANavLabel() {
+  var btn = document.getElementById('nav-next');
+  if (!btn) return;
+  var rem = 3 - S.dnaStep;
+  if (rem > 0) {
+    btn.innerHTML = rem + ' Question' + (rem > 1 ? 's' : '') + ' Left <span class="arrow">\u2192</span>';
+  } else {
+    btn.innerHTML = 'Next: Spark Meter <span class="arrow">\u2192</span>';
+  }
+}
+
+function dnaComplete() {
+  var wrap = document.getElementById('dna-questions');
+  if (!wrap) return;
+
+  // Completion screen
+  wrap.innerHTML = '<div style="text-align:center;animation:fadeup .5s both">'
+    + '<div style="font-size:3rem;margin-bottom:16px">\u26A1</div>'
+    + '<div style="font-family:var(--font-d);font-size:1.9rem;letter-spacing:2px;color:var(--navy);margin-bottom:10px">DNA SCAN COMPLETE</div>'
+    + '<div style="font-size:.9rem;color:var(--muted);line-height:1.7">Your Igniter DNA has been mapped.<br>Loading Spark calibration\u2026</div>'
+    + '</div>';
+
+  // Set progress to 100%
+  document.getElementById('dna-q-num').textContent = '3';
+  document.getElementById('dna-q-pct').textContent = '100%';
+  document.getElementById('dna-prog').style.width  = '100%';
+
+  addTag('DNA Mapped', 'green');
+  addActivity('DNA scan <strong>complete</strong> \u2014 3/3 answered');
+
+  // Update nav button
+  var btn = document.getElementById('nav-next');
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = 'Next: Spark Meter <span class="arrow">\u2192</span>';
+  }
+
+  // Auto-advance after 1.1 s — call showStep directly (bypasses guard)
+  setTimeout(function() {
+    if (S.step === 6) showStep(7, 'up');
+  }, 1100);
+}
+
+/* =====================================================
+   SPARK METER (Step 7)
+===================================================== */
+function updateSpark() {
+  var h = +(document.getElementById('r-h').value);
+  var c = +(document.getElementById('r-c').value);
+  var m = +(document.getElementById('r-m').value);
+
+  document.getElementById('lbl-h').textContent = h + 'h';
+  document.getElementById('lbl-c').textContent = c + '/10';
+  document.getElementById('lbl-m').textContent = m;
+
+  var spark     = Math.min(99, Math.round(h / 12 * 35 + c / 10 * 35 + m / 20 * 30));
+  var clarity   = Math.min(99, Math.round(c / 10 * 40 + m / 20 * 35 + h / 12 * 25));
+  var potential = Math.min(99, Math.round(h / 12 * 30 + c / 10 * 30 + m / 20 * 20 + 20));
+
+  S.spark = spark; S.clarity = clarity; S.potential = potential;
+
+  // SVG gauge — offset = circumference * (1 - fraction)
+  var dashOff = 238.8 * (1 - spark / 100);
+  var ring = document.getElementById('gauge-ring');
+  if (ring) ring.style.strokeDashoffset = dashOff;
+  var gnum = document.getElementById('gauge-num');
+  if (gnum) gnum.textContent = spark;
+
+  // Text label
+  var lvl = spark < 30 ? ['COLD SPARK','Increase your daily effort significantly.']
+          : spark < 55 ? ['WARMING UP','Good base. Add structured consistency.']
+          : spark < 75 ? ['IGNITING \uD83D\uDD25','Strong effort! Fine-tune your strategy.']
+          :              ['FULL IGNITION \u26A1','Elite level. Built for top ranks.'];
+  var t = document.getElementById('spark-lvl-title');
+  var d = document.getElementById('spark-lvl-desc');
+  if (t) t.textContent = lvl[0];
+  if (d) d.textContent = lvl[1];
+
+  // Mini meters
+  setMM('mm-spark',    'mm-spark-bar',    spark);
+  setMM('mm-clarity',  'mm-clarity-bar',  clarity);
+  setMM('mm-potential','mm-potential-bar',potential);
+
+  setSPMetrics(spark, clarity, potential);
+  if (spark > 70) addTag('High Performer', 'yellow');
+}
+
+function setMM(valId, barId, val) {
+  var v = document.getElementById(valId);
+  var b = document.getElementById(barId);
+  if (v) v.textContent = val;
+  if (b) b.style.width = val + '%';
+}
+
+/* =====================================================
+   RESULT BUILDER (Step 9)
+===================================================== */
+function buildResult() {
+  var name = S.name || 'You';
+
+  var profile = {
+    'Inconsistent Spark': ['HIGH-POTENTIAL',
+      'Your raw drive is your biggest asset. With Positron\'s adaptive system, inconsistency becomes the past.'],
+    'Result-Hungry':      ['FOCUSED FIRE',
+      'Hard work without the right system leaks energy. Positron channels yours directly into results.'],
+    'Explorer':           ['EMERGING',
+      'Every top ranker started where you are. The Positron System gives you the map you\'ve been missing.'],
+  };
+
+  var key   = S.phaseCardEl ? (S.phaseCardEl.dataset.tag || '') : '';
+  var entry = profile[key] || ['HIGH-POTENTIAL', 'Your pattern reveals raw potential waiting for the right system.'];
+
+  var typeEl = document.getElementById('r-type-display');
+  var nameEl = document.getElementById('r-name-display');
+  var descEl = document.getElementById('r-desc-display');
+  if (typeEl) typeEl.textContent = entry[0];
+  if (nameEl) nameEl.textContent = name + ',';
+  if (descEl) descEl.textContent = entry[1];
+
+  var matchScore = Math.min(99, Math.round(S.spark * .4 + S.clarity * .35 + S.potential * .25));
+  var growth     = S.potential > 70 ? '5x' : S.potential > 50 ? '4x' : '3x';
+  var days       = (S.exam.indexOf('JEE A') !== -1) ? '120d' : '90d';
+
+  var rm = document.getElementById('r-match');
+  var rg = document.getElementById('r-growth');
+  var rd = document.getElementById('r-days');
+  if (rm) rm.textContent = matchScore + '%';
+  if (rg) rg.textContent = growth;
+  if (rd) rd.textContent = days;
+
+  // Glow burst
+  setTimeout(function() {
+    var hero = document.querySelector('.result-hero');
+    if (hero) {
+      hero.style.boxShadow = '0 0 60px rgba(255,195,0,.35)';
+      setTimeout(function() { hero.style.boxShadow = ''; }, 900);
+    }
+  }, 300);
+
+  // Start countdown (only once)
+  if (!S.urgencyStarted) {
+    S.urgencyStarted = true;
+    startUrgency();
+  }
+}
+
+function startUrgency() {
+  var target = Date.now() + (7 * 86400 + 14 * 3600 + 32 * 60) * 1000;
+  function tick() {
+    var diff = target - Date.now();
+    if (diff <= 0) return;
+    var h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+    var m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+    var s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+    var el = document.getElementById('urgency-cd');
+    if (el) el.textContent = h + ':' + m + ':' + s;
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+/* =====================================================
+   SIDE PANEL
+===================================================== */
+function updateSPType(t) {
+  var el = document.getElementById('sp-type');
+  if (el) el.textContent = t || '\u2014';
+}
+function updateSPName(t) {
+  var el = document.getElementById('sp-name');
+  if (el) el.textContent = t || 'Identifying\u2026';
+}
+function setSPMetrics(spark, clarity, potential) {
+  function set(vid, bid, val) {
+    var v = document.getElementById(vid), b = document.getElementById(bid);
+    if (v) v.textContent = val + '%';
+    if (b) b.style.width  = val + '%';
+  }
+  set('sp-spark-val',   'sp-spark-bar',   spark);
+  set('sp-clarity-val', 'sp-clarity-bar', clarity);
+  set('sp-potential-val','sp-potential-bar',potential);
+}
+function updateMetrics(ds, dc, dp) {
+  S.spark     = Math.min(99, S.spark     + ds);
+  S.clarity   = Math.min(99, S.clarity   + dc);
+  S.potential = Math.min(99, S.potential + dp);
+  setSPMetrics(S.spark, S.clarity, S.potential);
+  setMM('mm-spark',    'mm-spark-bar',    S.spark);
+  setMM('mm-clarity',  'mm-clarity-bar',  S.clarity);
+  setMM('mm-potential','mm-potential-bar',S.potential);
+}
+function addTag(label, type) {
+  if (S.tags.has(label)) return;
+  S.tags.add(label);
+  var wrap = document.getElementById('sp-tags');
+  if (!wrap) return;
+  var el = document.createElement('div');
+  el.className = 'sp-tag' + (type ? ' ' + type : '');
+  el.textContent = label;
+  wrap.appendChild(el);
+}
+function addActivity(text) {
+  S.activity.unshift(text);
+  if (S.activity.length > 8) S.activity.pop();
+  var wrap = document.getElementById('sp-activity');
+  if (!wrap) return;
+  wrap.innerHTML = S.activity.slice(0, 6).map(function(a) {
+    return '<div class="sp-activity-item"><div class="sp-activity-dot"></div>'
+         + '<div class="sp-activity-text">' + a + '</div></div>';
+  }).join('');
+}
+
+/* =====================================================
+   AI CHATBOT
+===================================================== */
+var chatHistory  = [];
+var chatPanelOpen = false;
+
+function toggleChat() {
+  chatPanelOpen = !chatPanelOpen;
+  document.getElementById('chat-panel').classList.toggle('open', chatPanelOpen);
+}
+
+function buildUserContext() {
+  return 'Name: ' + (S.name || 'Unknown')
+    + '\nExam: ' + (S.exam || 'Not selected')
+    + '\nPhase: ' + (S.phase || 'Not answered')
+    + '\nAspiration: ' + (S.aspiration || 'Not answered')
+    + '\nSpark: ' + S.spark + '%, Clarity: ' + S.clarity + '%, Potential: ' + S.potential + '%'
+    + '\nBehavioral Tags: ' + Array.from(S.tags).join(', ')
+    + '\nStep: ' + (S.step + 1) + '/' + TOTAL_STEPS
+    + '\nDNA answered: ' + S.dnaStep + '/3'
+    + '\nPhone provided: ' + (S.phone ? 'Yes' : 'No');
+}
+
+async function callClaudeAPI(userMessage) {
+  var sys = 'You are the Positron Igniter AI — empathetic, sharp, conversion-focused.\n'
+    + 'Student context:\n' + buildUserContext() + '\n\n'
+    + 'Rules: SHORT replies (2-4 sentences). Use name if known. Be warm & direct. '
+    + 'Naturally guide toward WhatsApp CTA. Emojis sparingly. '
+    + 'If asked about pricing say "Your mentor will walk you through on WhatsApp". '
+    + 'Never reveal you are Claude/Anthropic. You are "Igniter AI by Positron".';
+
+  chatHistory.push({ role: 'user', content: userMessage });
+  var resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: sys,
+      messages: chatHistory
+    })
+  });
+  var data  = await resp.json();
+  var reply = (data.content && data.content[0] && data.content[0].text)
+    || 'Let me connect you with an Igniter mentor directly!';
+  chatHistory.push({ role: 'assistant', content: reply });
+  return reply;
+}
+
+function addChatMsg(text, role) {
+  var body = document.getElementById('chat-msgs');
+  if (!body) return;
+  var div = document.createElement('div');
+  div.className = 'chat-msg ' + role;
+  div.innerHTML = text;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+}
+
+async function chatOption(text) {
+  document.getElementById('chat-opts').innerHTML = '';
+  addChatMsg(text, 'user');
+  await triggerAIChat(text);
+}
+
+async function sendChat() {
+  var inp  = document.getElementById('chat-in');
+  var text = inp.value.trim();
+  if (!text) return;
+  inp.value = '';
+  document.getElementById('chat-opts').innerHTML = '';
+  addChatMsg(text, 'user');
+  await triggerAIChat(text);
+}
+
+async function triggerAIChat(text) {
+  addTag('Chat Active', 'electric');
+  addActivity('Chat: <strong>"' + text.slice(0, 30) + '"</strong>');
+  var typing = document.getElementById('chat-typing');
+  if (typing) typing.classList.add('show');
+  try {
+    var reply = await callClaudeAPI(text);
+    if (typing) typing.classList.remove('show');
+    addChatMsg(reply, 'bot');
+    var opts = S.step < 8
+      ? ['How does the system work?', 'What results can I expect?']
+      : ['Get my personalised plan', 'Connect on WhatsApp'];
+    var optsEl = document.getElementById('chat-opts');
+    if (optsEl) optsEl.innerHTML = opts.map(function(o) {
+      return '<button class="chat-qopt" onclick="chatOption(\'' + o + '\')">' + o + '</button>';
+    }).join('');
+    if (/price|join|enroll|fee|cost/i.test(text)) {
+      addTag('Purchase Intent', 'red');
+      addActivity('High-intent signal detected');
+    }
+  } catch(err) {
+    if (typing) typing.classList.remove('show');
+    addChatMsg('Let me connect you with an Igniter mentor directly! \u26A1', 'bot');
+    var optsEl = document.getElementById('chat-opts');
+    if (optsEl) optsEl.innerHTML = '<button class="chat-qopt" onclick="openWA()">Connect on WhatsApp \u2192</button>';
+  }
+}
+
+/* =====================================================
+   WHATSAPP
+===================================================== */
+function openWA() {
+  var name = S.name || 'Student';
+  var exam = S.exam || 'my exam';
+  var msg  = 'Hi Positron! I\'m ' + name + ' and I want my personalised Igniter plan for ' + exam
+           + '. Spark Score: ' + S.spark + '%, Potential: ' + S.potential + '%.';
+  window.open('https://wa.me/919999999999?text=' + encodeURIComponent(msg), '_blank');
+  addTag('WA Clicked', 'green');
+  addActivity('<strong>WhatsApp</strong> opened \u2014 high intent!');
+}
+
+/* =====================================================
+   PHONE INPUT (Step 8)
+===================================================== */
+function onPhoneInput() {
+  var el = document.getElementById('igniter-phone');
+  if (!el) return;
+  el.value = el.value.replace(/\D/g, '').slice(0, 10);
+}
+
+/* =====================================================
+   PRODUCT CARD 3-D TILT
+===================================================== */
+document.querySelectorAll('.prod-card').forEach(function(card) {
+  card.addEventListener('mousemove', function(e) {
+    var r  = card.getBoundingClientRect();
+    var dx = (e.clientX - r.left - r.width  / 2) / (r.width  / 2);
+    var dy = (e.clientY - r.top  - r.height / 2) / (r.height / 2);
+    card.style.transform = 'translateY(-6px) rotateX(' + (-dy * 6) + 'deg) rotateY(' + (dx * 6) + 'deg)';
+  });
+  card.addEventListener('mouseleave', function() { card.style.transform = ''; });
+});
+
+/* =====================================================
+   KEYBOARD NAVIGATION
+===================================================== */
+document.addEventListener('keydown', function(e) {
+  // Don't fire step nav when user is typing in an input
+  if (['INPUT','SELECT','TEXTAREA'].indexOf(document.activeElement.tagName) !== -1) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextStep();
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   prevStep();
+  if (e.key === 'Escape' && chatPanelOpen) toggleChat();
+});
+
+/* =====================================================
+   TOUCH SWIPE — disabled on step 6 (DNA) to avoid
+   accidental navigation while tapping options
+===================================================== */
+var touchStartX = 0, touchStartY = 0;
+document.addEventListener('touchstart', function(e) {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+document.addEventListener('touchend', function(e) {
+  // Skip swipe nav on DNA step
+  if (S.step === 6) return;
+  var dx = e.changedTouches[0].clientX - touchStartX;
+  var dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 55) {
+    if (dy < 0) nextStep();
+    else         prevStep();
+  }
+}, { passive: true });
+
+/* =====================================================
+   INIT
+===================================================== */
+updateJourneyBar(0);
+updateNavBtns(0);
+document.getElementById('nav-back').style.visibility = 'hidden';
+setSPMetrics(0, 0, 0);
+addActivity('Journey started \u26A1');
+
+// Subtle chat pulse after 10 s to invite interaction
+setTimeout(function() {
+  var btn = document.getElementById('chat-toggle');
+  if (btn) { btn.style.transform = 'scale(1.15)'; setTimeout(function() { btn.style.transform = ''; }, 400); }
+}, 10000);
+</script>
+
+</body>
+</html>
